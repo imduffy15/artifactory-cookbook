@@ -1,0 +1,20 @@
+---
+driver:
+  name: vagrant
+  customize:
+    cpus: 4
+    memory: 4096
+
+provisioner:
+  name: chef_zero
+  config_rb:
+    environment: dev
+
+platforms:
+  - name: centos6
+
+suites:
+  - name: default
+    run_list:
+      - recipe[artifactory::default]
+    attributes:
