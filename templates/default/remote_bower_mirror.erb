@@ -1,0 +1,57 @@
+
+<% if @resource.ssl %>
+server {
+  <% @resource.http_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+
+  server_name <%= @resource.http_server_name %>;
+
+  location / {
+    if ($http_x_forwarded_proto != 'https') {
+      return 301 https://<%= @resource.host %>$request_uri;
+    }
+  }
+}
+
+server {
+  <% @resource.https_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+
+  server_name <%= @resource.https_server_name %>;
+
+  ssl on;
+  ssl_certificate <%= @resource.host %>.pem;
+  ssl_certificate_key <%= @resource.host %>.key;
+
+  location / {
+    sub_filter_types *
+    sub_filter 'git://github.com' 'http://github.direct.mirror.lan.ianduffy.ie';
+    sub_filter '<%= @resource.application_host %>' '<%= @resource.http_server_name %>';
+    sub_filter '<%= @resource.application_host %>:<%= @resource.application_port %>' '<%= @resource.http_server_name %>';
+    sub_filter_once off;
+    sub_filter_last_modified on;
+    proxy_pass <%= @resource.application_host %>:<%= @resource.application_port %>;
+    proxy_redirect default;
+  }
+}
+<% else %>
+server {
+  <% @resource.http_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+  server_name <%= @resource.http_server_name %>;
+
+  location / {
+    sub_filter_types *;
+    sub_filter 'git://github.com' 'http://github.direct.mirror.lan.ianduffy.ie';
+    sub_filter '<%= @resource.application_host %>' '<%= @resource.http_server_name %>';
+    sub_filter '<%= @resource.application_host %>:<%= @resource.application_port %>' '<%= @resource.http_server_name %>';
+    sub_filter_once off;
+    sub_filter_last_modified on;
+    proxy_pass <%= @resource.application_host %>:<%= @resource.application_port %>;
+    proxy_redirect default;
+  }
+}
+<% end %>

@@ -15,3 +15,4 @@ issues_url 'https://github.com/imduffy15/artifactory-cookbook/issues' if respond
 
 depends 'yum', '3.10.0'
 depends 'java', '1.39.0'
+depends 'nginx'

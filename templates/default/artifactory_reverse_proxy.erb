@@ -1,0 +1,62 @@
+
+<% if @resource.ssl %>
+server {
+  <% @resource.http_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+
+  server_name <%= @resource.http_server_name %>;
+
+  location / {
+    if ($http_x_forwarded_proto != 'https') {
+      return 301 https://<%= @resource.host %>$request_uri;
+    }
+  }
+}
+
+server {
+  <% @resource.https_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+
+  server_name <%= @resource.https_server_name %>;
+
+  ssl on;
+  ssl_certificate <%= @resource.host %>.pem;
+  ssl_certificate_key <%= @resource.host %>.key;
+
+  rewrite ^/$ /webapp/ redirect;
+  rewrite ^/webapp$ /webapp/ redirect;
+
+  location / {
+    proxy_cookie_path ~*^/.* /;
+    proxy_pass http://<%= @resource.application_host %>:<%= @resource.application_port %>/artifactory/;
+    proxy_set_header HOST $host:$server_port;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header X-Forwarded-Proto https;
+
+    proxy_hide_header "Content-Disposition";
+  }
+}
+<% else %>
+server {
+  <% @resource.http_ports.each do |port| %>
+  listen <%= port %>;
+  <% end %>
+  server_name <%= @resource.http_server_name %>;
+
+  rewrite ^/$ /webapp/ redirect;
+  rewrite ^/webapp$ /webapp/ redirect;
+
+  location / {
+    proxy_cookie_path ~*^/.* /;
+    proxy_pass http://<%= @resource.application_host %>:<%= @resource.application_port %>/artifactory/;
+    proxy_set_header HOST $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $remote_addr;
+
+    proxy_hide_header "Content-Disposition";
+  }
+}
+<% end %>

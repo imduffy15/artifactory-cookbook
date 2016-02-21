@@ -18,3 +18,4 @@
 
 include_recipe 'artifactory::_repository_configuration'
 include_recipe 'artifactory::_installation'
+include_recipe 'artifactory::_configuration'

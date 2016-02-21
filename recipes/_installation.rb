@@ -1,6 +1,6 @@
 #
 # Cookbook Name:: artifactory
-# Recipe:: default
+# Recipe:: _installation
 #
 # Copyright 2016 Ian Duffy
 #
@@ -21,9 +21,4 @@ include_recipe 'java::default'
 package node['artifactory']['package']['name'] do
   version node['artifactory']['package']['version']
   action :install
-end
-
-service node['artifactory']['service']['name'] do
-  supports status: true, restart: true
-  action [:start, :enable]
 end
